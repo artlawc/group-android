@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       TIANDITU_MAP_KEY: ${{ secrets.TIANDITU_MAP_KEY }}
-      CAR_3D_MODEL_URL: ${{ env.CAR_3D_MODEL_URL }}
+      CAR_3D_MODEL_URL: ${{ vars.CAR_3D_MODEL_URL }}
 
     steps:
       - name: Check out repository
