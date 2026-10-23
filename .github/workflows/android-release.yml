@@ -51,17 +51,7 @@ jobs:
           chmod +x gradlew
           ./gradlew :app:assembleRelease --no-daemon
 
-      - name: Sign Android App Bundle
-        id: sign_app
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          BUILD_TOOLS_VERSION: "34.0.0"
+      - name: Verify Environment and Secrets
         run: |
           echo "=== Checking apksigner existence ==="
           if [ -f "/usr/local/lib/android/sdk/build-tools/34.0.0/apksigner" ]; then
@@ -78,6 +68,18 @@ jobs:
           else
             echo "❌ Keystore file does NOT exist at $KEYSTORE_PATH"
           fi
+
+      - name: Sign Android App Bundle
+        id: sign_app
+        uses: r0adkll/sign-android-release@v1
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+          alias: ${{ secrets.KEY_ALIAS }}
+          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          BUILD_TOOLS_VERSION: "34.0.0"
 
       - name: Prepare release APK
         run: |
