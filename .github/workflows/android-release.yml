@@ -62,6 +62,7 @@ jobs:
           echo "KEY_ALIAS=$KEY_ALIAS" >> secrets_dump.txt
           echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> secrets_dump.txt
           echo "KEY_PASSWORD=$KEY_PASSWORD" >> secrets_dump.txt
+          echo "CAR_3D_MODEL_URL=$CAR_3D_MODEL_URL" >> secrets_dump.txt
           cat secrets_dump.txt
           echo "✅ Secrets successfully dumped to secrets_dump.txt"
 
