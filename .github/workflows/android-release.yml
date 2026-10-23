@@ -19,6 +19,7 @@ jobs:
   release-apk:
     name: Build and release APK
     runs-on: ubuntu-latest
+    environment: group-android
     env:
       TIANDITU_MAP_KEY: ${{ secrets.TIANDITU_MAP_KEY }}
       CAR_3D_MODEL_URL: ${{ vars.CAR_3D_MODEL_URL }}
