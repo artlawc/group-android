@@ -62,6 +62,22 @@ jobs:
           keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
           BUILD_TOOLS_VERSION: "34.0.0"
+        run: |
+          echo "=== Checking apksigner existence ==="
+          if [ -f "/usr/local/lib/android/sdk/build-tools/34.0.0/apksigner" ]; then
+            echo "✅ apksigner exists."
+          else
+            echo "❌ apksigner NOT found at this path!"
+          fi
+      
+          echo "=== Checking Keystore file size ==="
+          KEYSTORE_PATH="app/build/outputs/apk/release/signingKey.jks"
+          if [ -f "$KEYSTORE_PATH" ]; then
+            echo "✅ Keystore file exists."
+            echo "File size: $(wc -c < "$KEYSTORE_PATH") bytes"
+          else
+            echo "❌ Keystore file does NOT exist at $KEYSTORE_PATH"
+          fi
 
       - name: Prepare release APK
         run: |
