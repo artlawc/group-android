@@ -64,6 +64,8 @@ jobs:
           # 3. Verify the file was created and isn't 0 bytes
           echo "=== Verifying Keystore File ==="
           ls -l app/build/outputs/apk/release/signingKey.jks
+          pwd
+          cat app/build/outputs/apk/release/signingKey.jks
 
       - name: Sign Android App Bundle
         id: sign_app
