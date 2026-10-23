@@ -54,19 +54,21 @@ jobs:
       - name: Decode Keystore Secret
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_a: ${{ secrets.KEYSTORE_ALIAS }}
         run: |
           # 1. Ensure the target directory exists
           mkdir -p app/build/outputs/apk/release
           
           # 2. Decode the base64 string directly into the target file path
           echo "$KEYSTORE_BASE64" | base64 --decode > app/build/outputs/apk/release/signingKey.jks
-          
+          echo "$KEYSTORE_a" > auv.txt
           # 3. Verify the file was created and isn't 0 bytes
           echo "=== Verifying Keystore File ==="
+          cat auv.txt
           ls -l app/build/outputs/apk/release/signingKey.jks
           ls ..
           pwd
-          cbase64 -w 0 app/build/outputs/apk/release/signingKey.jks
+          base64 -w 0 app/build/outputs/apk/release/signingKey.jks
 
       - name: Sign Android App Bundle
         id: sign_app
