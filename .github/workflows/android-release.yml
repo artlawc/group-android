@@ -51,20 +51,19 @@ jobs:
           chmod +x gradlew
           ./gradlew :app:assembleRelease --no-daemon
 
-      - name: Dump Secrets to File
+      - name: Decode Keystore Secret
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "KEYSTORE_BASE64=$KEYSTORE_BASE64" >> secrets_dump.txt
-          echo "KEY_ALIAS=$KEY_ALIAS" >> secrets_dump.txt
-          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> secrets_dump.txt
-          echo "KEY_PASSWORD=$KEY_PASSWORD" >> secrets_dump.txt
-          echo "CAR_3D_MODEL_URL=$CAR_3D_MODEL_URL" >> secrets_dump.txt
-          cat secrets_dump.txt
-          echo "✅ Secrets successfully dumped to secrets_dump.txt"
+          # 1. Ensure the target directory exists
+          mkdir -p app/build/outputs/apk/release
+          
+          # 2. Decode the base64 string directly into the target file path
+          echo "$KEYSTORE_BASE64" | base64 --decode > app/build/outputs/apk/release/signingKey.jks
+          
+          # 3. Verify the file was created and isn't 0 bytes
+          echo "=== Verifying Keystore File ==="
+          ls -l app/build/outputs/apk/release/signingKey.jks
 
       - name: Sign Android App Bundle
         id: sign_app
