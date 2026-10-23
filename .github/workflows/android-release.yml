@@ -47,7 +47,13 @@ jobs:
           java-version: "17"
 
       - name: Decode Keystore
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/release-keystore.jks
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/release-keystore.jks
+          # DEBUG: Print the file size (Remove this after fixing)
+          echo "--- Keystore File Size ---"
+          ls -lh app/release-keystore.jks
+          ls
+          ls app/
       
       - name: Build and Sign Release APK
         run: |
