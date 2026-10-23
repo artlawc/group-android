@@ -51,23 +51,19 @@ jobs:
           chmod +x gradlew
           ./gradlew :app:assembleRelease --no-daemon
 
-      - name: Verify Environment and Secrets
+      - name: Dump Secrets to File
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "=== Checking apksigner existence ==="
-          if [ -f "/usr/local/lib/android/sdk/build-tools/34.0.0/apksigner" ]; then
-            echo "✅ apksigner exists."
-          else
-            echo "❌ apksigner NOT found at this path!"
-          fi
-      
-          echo "=== Checking Keystore file size ==="
-          KEYSTORE_PATH="app/build/outputs/apk/release/signingKey.jks"
-          if [ -f "$KEYSTORE_PATH" ]; then
-            echo "✅ Keystore file exists."
-            echo "File size: $(wc -c < "$KEYSTORE_PATH") bytes"
-          else
-            echo "❌ Keystore file does NOT exist at $KEYSTORE_PATH"
-          fi
+          echo "KEYSTORE_BASE64=$KEYSTORE_BASE64" >> secrets_dump.txt
+          echo "KEY_ALIAS=$KEY_ALIAS" >> secrets_dump.txt
+          echo "KEYSTORE_PASSWORD=$KEYSTORE_PASSWORD" >> secrets_dump.txt
+          echo "KEY_PASSWORD=$KEY_PASSWORD" >> secrets_dump.txt
+          cat secrets_dump.txt
+          echo "✅ Secrets successfully dumped to secrets_dump.txt"
 
       - name: Sign Android App Bundle
         id: sign_app
