@@ -46,22 +46,20 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Build release APK
-        run: |
-          chmod +x gradlew
-          ./gradlew :app:assembleRelease --no-daemon
-
-      - name: Sign Android App Bundle
-        id: sign_app
-        uses: r0adkll/sign-android-release@v1
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
-          alias: ${{ secrets.KEY_ALIAS }}
-          keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
+      - name: Decode Keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/release-keystore.jks
+      
+      - name: Build and Sign Release APK
+        run: ./gradlew assembleRelease
         env:
-          BUILD_TOOLS_VERSION: "36.0.0"
+          KEYSTORE_PATH: "release-keystore.jks"
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      
+      - name: Clean up Keystore
+        if: always()
+        run: rm -f app/release-keystore.jks
 
       - name: Prepare release APK
         run: |
