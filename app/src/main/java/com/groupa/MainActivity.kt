@@ -16,6 +16,7 @@ import android.os.Looper
 import android.view.ContextThemeWrapper
 import java.util.Locale
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -36,6 +37,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -78,6 +80,7 @@ import com.groupa.coreui.theme.White
 import com.groupa.coreui.util.AppLanguage
 import com.groupa.coreui.R as CoreUiR
 import com.groupa.navigation.GroupRoutes
+import com.groupa.presentation.download.CarModelDownloadManager
 import com.groupa.presentation.screen.AccountSettingsScreen
 import com.groupa.presentation.screen.BodyMuscleScreen
 import com.groupa.presentation.screen.Car3DScreen
@@ -138,6 +141,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        CarModelDownloadManager.markAppInForeground()
+    }
+
+    override fun onStop() {
+        CarModelDownloadManager.markAppInBackground()
+        super.onStop()
+    }
+
     private fun createLocalizedContext(languageTag: String): Context {
         val resolvedLanguageTag = if (languageTag.isEmpty()) {
             LocaleListCompat.getDefault()[0]?.toLanguageTag().orEmpty()
@@ -193,6 +206,20 @@ private fun GroupApp(
     val state by viewModel.state.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var showCarModelReadyBanner by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        CarModelDownloadManager.completionEvent.collect {
+            showCarModelReadyBanner = true
+        }
+    }
+
+    LaunchedEffect(showCarModelReadyBanner) {
+        if (showCarModelReadyBanner) {
+            delay(5_000)
+            showCarModelReadyBanner = false
+        }
+    }
 
     LaunchedEffect(state.user.isSignedIn, currentRoute) {
         if (state.user.isSignedIn && currentRoute == GroupRoutes.SIGN_IN) {
@@ -221,7 +248,61 @@ private fun GroupApp(
                 onTabSelected = { route -> navController.navigateRoot(route) },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
+                .fillMaxWidth(),
+            )
+        }
+        if (showCarModelReadyBanner) {
+            CarModelDownloadReadyBanner(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
                     .fillMaxWidth(),
+                onOpen = {
+                    showCarModelReadyBanner = false
+                    navController.navigate(GroupRoutes.car3d("carconcept"))
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun CarModelDownloadReadyBanner(
+    modifier: Modifier = Modifier,
+    onOpen: () -> Unit,
+) {
+    Surface(
+        modifier = modifier
+            .statusBarsPadding()
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .clickable(onClick = onOpen),
+        color = White,
+        shape = RoundedCornerShape(16.dp),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    text = "3D model ready",
+                    color = Ink,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "Tap to view the car dashboard",
+                    color = Ink.copy(alpha = 0.65f),
+                    fontSize = 12.sp,
+                )
+            }
+            Text(
+                text = "View",
+                color = GroupBlue,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.SemiBold,
             )
         }
     }

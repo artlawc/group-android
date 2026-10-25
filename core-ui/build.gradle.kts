@@ -35,5 +35,6 @@ dependencies {
     api(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.filament.android)
     implementation(libs.gltfio.android)
+    testImplementation(libs.junit)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }

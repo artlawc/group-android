@@ -21,7 +21,7 @@ val tiandituMapKey = System.getenv("TIANDITU_MAP_KEY")
 
 val car3dModelUrl = System.getenv("CAR_3D_MODEL_URL")
     ?: localProperties.getProperty("car3d.modelUrl")
-    ?: "https://v4.gh-proxy.org/https://raw.githubusercontent.com/artlawc/car-concept-3d-dashboard/main/CarConcept.glb"
+    ?: "https://v6.gh-proxy.org/https://raw.githubusercontent.com/artlawc/car-concept-3d-dashboard/main/CarConcept.glb"
 
 val tiandituMapKeyLiteral = charArrayOf('"', *tiandituMapKey.toCharArray(), '"').concatToString()
 val car3dModelUrlLiteral = charArrayOf('"', *car3dModelUrl.toCharArray(), '"').concatToString()

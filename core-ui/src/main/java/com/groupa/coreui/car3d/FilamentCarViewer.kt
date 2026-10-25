@@ -425,11 +425,9 @@ private class CarFilamentController(
         if (transformInstance == 0) {
             return null
         }
-        val rowMajor = FloatArray(16)
-        engine.transformManager.getTransform(transformInstance, rowMajor)
-        val columnMajor = FloatArray(16)
-        Matrix.transposeM(columnMajor, 0, rowMajor, 0)
-        return EntityTransform(entity, columnMajor)
+        val matrix = FloatArray(16)
+        engine.transformManager.getTransform(transformInstance, matrix)
+        return EntityTransform(entity, matrix)
     }
 
     private fun updateRootTransform(state: CarFrameState) {
@@ -445,47 +443,118 @@ private class CarFilamentController(
     }
 
     private fun updateBodyTransforms(state: CarFrameState) {
-        updateBodyTransform(
+        val animation = carBodyAnimationSpec(state)
+        updateDoorTransform(
             doorLeftTransform,
-            rotationY = 60f * state.doorLeftProgress,
-            translationX = -1.2f * state.explodeProgress,
+            rotationZ = animation.doorLeftRotationZ,
+            pivotX = animation.doorLeftHingePivotX,
+            pivotY = animation.doorHingePivotY,
+            translationX = animation.doorLeftTranslationX,
         )
-        updateBodyTransform(
+        updateDoorTransform(
             doorRightTransform,
-            rotationY = -60f * state.doorRightProgress,
-            translationX = 1.2f * state.explodeProgress,
+            rotationZ = animation.doorRightRotationZ,
+            pivotX = animation.doorRightHingePivotX,
+            pivotY = animation.doorHingePivotY,
+            translationX = animation.doorRightTranslationX,
         )
         updateBodyTransform(
             hoodTransform,
-            rotationX = -90f * state.hoodProgress,
-            translationY = 0.6f * state.explodeProgress,
+            rotationX = animation.hoodRotationX,
+            pivotY = animation.hoodHingePivotY,
+            pivotZ = animation.hoodHingePivotZ,
+            translationZ = animation.hoodTranslationZ,
         )
         updateBodyTransform(
             hatchTransform,
-            rotationX = 99f * state.hatchProgress,
-            translationY = 0.4f * state.explodeProgress,
+            rotationX = animation.hatchRotationX,
+            pivotY = animation.hatchHingePivotY,
+            pivotZ = animation.hatchHingePivotZ,
+            translationZ = animation.hatchTranslationZ,
         )
+    }
+
+    private fun updateDoorTransform(
+        transform: EntityTransform?,
+        rotationZ: Float,
+        pivotX: Float,
+        pivotY: Float,
+        translationX: Float,
+    ) {
+        transform ?: return
+        val pivotToOrigin = FloatArray(16)
+        Matrix.setIdentityM(pivotToOrigin, 0)
+        Matrix.translateM(pivotToOrigin, 0, -pivotX, -pivotY, 0f)
+
+        val uprightRotation = FloatArray(16)
+        Matrix.setIdentityM(uprightRotation, 0)
+        Matrix.rotateM(uprightRotation, 0, rotationZ, 0f, 0f, 1f)
+
+        val rotationAboutPivot = FloatArray(16)
+        Matrix.multiplyMM(rotationAboutPivot, 0, uprightRotation, 0, pivotToOrigin, 0)
+
+        val originToPivot = FloatArray(16)
+        Matrix.setIdentityM(originToPivot, 0)
+        Matrix.translateM(originToPivot, 0, pivotX, pivotY, 0f)
+
+        val hingeTransform = FloatArray(16)
+        Matrix.multiplyMM(hingeTransform, 0, originToPivot, 0, rotationAboutPivot, 0)
+
+        val transformed = FloatArray(16)
+        Matrix.multiplyMM(transformed, 0, hingeTransform, 0, transform.original, 0)
+
+        if (translationX != 0f) {
+            val outwardTranslation = FloatArray(16)
+            Matrix.setIdentityM(outwardTranslation, 0)
+            Matrix.translateM(outwardTranslation, 0, translationX, 0f, 0f)
+            val translated = FloatArray(16)
+            Matrix.multiplyMM(translated, 0, outwardTranslation, 0, transformed, 0)
+            setTransform(transform, translated)
+        } else {
+            setTransform(transform, transformed)
+        }
     }
 
     private fun updateBodyTransform(
         transform: EntityTransform?,
         rotationX: Float = 0f,
-        rotationY: Float = 0f,
-        translationX: Float = 0f,
-        translationY: Float = 0f,
+        pivotY: Float = 0f,
+        pivotZ: Float = 0f,
+        translationZ: Float = 0f,
     ) {
         transform ?: return
-        val matrix = transform.original.copyOf()
-        if (rotationX != 0f) {
-            Matrix.rotateM(matrix, 0, rotationX, 1f, 0f, 0f)
+
+        val pivotToOrigin = FloatArray(16)
+        Matrix.setIdentityM(pivotToOrigin, 0)
+        Matrix.translateM(pivotToOrigin, 0, 0f, -pivotY, -pivotZ)
+
+        val hingeRotation = FloatArray(16)
+        Matrix.setIdentityM(hingeRotation, 0)
+        Matrix.rotateM(hingeRotation, 0, rotationX, 1f, 0f, 0f)
+
+        val rotationAboutPivot = FloatArray(16)
+        Matrix.multiplyMM(rotationAboutPivot, 0, hingeRotation, 0, pivotToOrigin, 0)
+
+        val originToPivot = FloatArray(16)
+        Matrix.setIdentityM(originToPivot, 0)
+        Matrix.translateM(originToPivot, 0, 0f, pivotY, pivotZ)
+
+        val hingeTransform = FloatArray(16)
+        Matrix.multiplyMM(hingeTransform, 0, originToPivot, 0, rotationAboutPivot, 0)
+
+        val transformed = FloatArray(16)
+        Matrix.multiplyMM(transformed, 0, hingeTransform, 0, transform.original, 0)
+
+        if (translationZ != 0f) {
+            val outwardTranslation = FloatArray(16)
+            Matrix.setIdentityM(outwardTranslation, 0)
+            Matrix.translateM(outwardTranslation, 0, 0f, 0f, translationZ)
+            val translated = FloatArray(16)
+            Matrix.multiplyMM(translated, 0, outwardTranslation, 0, transformed, 0)
+            setTransform(transform, translated)
+        } else {
+            setTransform(transform, transformed)
         }
-        if (rotationY != 0f) {
-            Matrix.rotateM(matrix, 0, rotationY, 0f, 1f, 0f)
-        }
-        if (translationX != 0f || translationY != 0f) {
-            Matrix.translateM(matrix, 0, translationX, translationY, 0f)
-        }
-        setTransform(transform, matrix)
     }
 
     private fun updateRimTransforms(state: CarFrameState) {
@@ -504,9 +573,7 @@ private class CarFilamentController(
     private fun setTransform(transform: EntityTransform, matrix: FloatArray) {
         val transformInstance = engine.transformManager.getInstance(transform.entity)
         if (transformInstance != 0) {
-            val rowMajor = FloatArray(16)
-            Matrix.transposeM(rowMajor, 0, matrix, 0)
-            engine.transformManager.setTransform(transformInstance, rowMajor)
+            engine.transformManager.setTransform(transformInstance, matrix)
         }
     }
 

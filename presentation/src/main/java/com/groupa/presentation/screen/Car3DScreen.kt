@@ -33,12 +33,15 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,9 +61,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.groupa.presentation.download.CarModelDownloadManager
+import com.groupa.presentation.download.CarModelDownloadStatus
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.launch
 import com.groupa.presentation.BuildConfig
 import com.groupa.coreui.R
@@ -69,11 +72,6 @@ import com.groupa.coreui.car3d.CarFrameState
 import com.groupa.coreui.car3d.CarPaint
 import com.groupa.coreui.car3d.CarPoint
 import com.groupa.coreui.car3d.FilamentCarViewer
-import java.io.File
-import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.HttpURLConnection
-import java.net.URL
 
 private data class NamedCarPaint(
     val name: String,
@@ -119,6 +117,7 @@ fun Car3DScreen(
     carId: String,
     onBack: () -> Unit,
 ) {
+    val context = LocalContext.current
     var selectedPaintIndex by rememberSaveable { mutableStateOf(0) }
     var selectedCameraPresetIndex by rememberSaveable { mutableStateOf(0) }
     var turntableEnabled by rememberSaveable { mutableStateOf(true) }
@@ -169,19 +168,19 @@ fun Car3DScreen(
     }
 
     val doorLeftProgress by animateFloatAsState(
-        targetValue = if (doorLeftOpen || explodeView) 1f else 0f,
+        targetValue = if (doorLeftOpen) 1f else 0f,
         animationSpec = tween(durationMillis = 350),
     )
     val doorRightProgress by animateFloatAsState(
-        targetValue = if (doorRightOpen || explodeView) 1f else 0f,
+        targetValue = if (doorRightOpen) 1f else 0f,
         animationSpec = tween(durationMillis = 350),
     )
     val hoodProgress by animateFloatAsState(
-        targetValue = if (hoodOpen || explodeView) 1f else 0f,
+        targetValue = if (hoodOpen) 1f else 0f,
         animationSpec = tween(durationMillis = 350),
     )
     val hatchProgress by animateFloatAsState(
-        targetValue = if (hatchOpen || explodeView) 1f else 0f,
+        targetValue = if (hatchOpen) 1f else 0f,
         animationSpec = tween(durationMillis = 350),
     )
     val explodeProgress by animateFloatAsState(
@@ -198,9 +197,18 @@ fun Car3DScreen(
         spinWheels = spinWheels,
         driveLoop = driveLoop,
     )
-    val (downloadedModelFile, modelDownloadError) = rememberDownloadedCarModel(
-        modelUrl = BuildConfig.CAR_3D_MODEL_URL,
-    )
+    val downloadState = CarModelDownloadManager.state.collectAsState().value
+    val downloadedModelFile = downloadState.modelFile
+
+    LaunchedEffect(BuildConfig.CAR_3D_MODEL_URL) {
+        CarModelDownloadManager.start(context, BuildConfig.CAR_3D_MODEL_URL)
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            CarModelDownloadManager.markScreenExited()
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -217,11 +225,71 @@ fun Car3DScreen(
                 modifier = Modifier.fillMaxSize(),
             )
         } else {
-            Text(
-                text = modelDownloadError ?: "Loading 3D model…",
-                color = Color(0xFF888888),
-                modifier = Modifier.align(Alignment.Center),
-            )
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = if (downloadState.status == CarModelDownloadStatus.Failed) {
+                        "3D model download failed"
+                    } else {
+                        "Downloading 3D model"
+                    },
+                    color = Color(0xFFE0E0E0),
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                if (downloadState.status == CarModelDownloadStatus.Failed) {
+                    Text(
+                        text = downloadState.error ?: "Please try again later.",
+                        color = Color(0xFF888888),
+                        fontSize = 13.sp,
+                    )
+                    Button(
+                        onClick = {
+                            CarModelDownloadManager.retry(
+                                context,
+                                BuildConfig.CAR_3D_MODEL_URL,
+                            )
+                        },
+                    ) {
+                        Text(text = "Retry download")
+                    }
+                } else {
+                    if (downloadState.totalBytes > 0) {
+                        LinearProgressIndicator(
+                            progress = {
+                                (
+                                    downloadState.downloadedBytes.toFloat() /
+                                        downloadState.totalBytes
+                                    ).coerceIn(0f, 1f)
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    } else {
+                        LinearProgressIndicator(
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                    Text(
+                        text = if (downloadState.totalBytes > 0) {
+                            "Downloaded ${formatMegabytes(downloadState.downloadedBytes)} of " +
+                                formatMegabytes(downloadState.totalBytes)
+                        } else {
+                            "Downloaded ${formatMegabytes(downloadState.downloadedBytes)}"
+                        },
+                        color = Color(0xFF888888),
+                        fontSize = 13.sp,
+                    )
+                    Button(
+                        onClick = onBack,
+                    ) {
+                        Text(text = "Notify me when model downloaded")
+                    }
+                }
+            }
         }
 
         Row(
@@ -252,6 +320,7 @@ fun Car3DScreen(
             }
         }
 
+        if (downloadedModelFile != null) {
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -329,7 +398,15 @@ fun Car3DScreen(
                     ActionButton("Hatch", hatchOpen) { hatchOpen = !hatchOpen }
                     ActionButton("Spin Wheels", spinWheels) { spinWheels = !spinWheels }
                     ActionButton("Drive Loop", driveLoop) { driveLoop = !driveLoop }
-                    ActionButton("Explode", explodeView) { explodeView = !explodeView }
+                    ActionButton("Explode", explodeView) {
+                        explodeView = !explodeView
+                        if (explodeView) {
+                            doorLeftOpen = false
+                            doorRightOpen = false
+                            hoodOpen = false
+                            hatchOpen = false
+                        }
+                    }
                 }
 
                 SectionTitle("Lighting")
@@ -415,78 +492,14 @@ fun Car3DScreen(
                 }
             }
         }
+        }
     }
 }
 
 }
 
-@Composable
-private fun rememberDownloadedCarModel(modelUrl: String): Pair<File?, String?> {
-    val context = LocalContext.current
-    var modelFile by remember { mutableStateOf<File?>(null) }
-    var downloadError by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(modelUrl) {
-        downloadError = null
-        modelFile = null
-        try {
-            modelFile = downloadCarModel(context.cacheDir, modelUrl)
-        } catch (error: IOException) {
-            downloadError = "Unable to load the 3D model: ${error.message}"
-        }
-    }
-
-    return modelFile to downloadError
-}
-
-private suspend fun downloadCarModel(cacheDir: File, modelUrl: String): File =
-    withContext(Dispatchers.IO) {
-        val targetFile = File(cacheDir, "CarConcept.glb")
-        if (targetFile.isFile && isValidGlbFile(targetFile)) {
-            return@withContext targetFile
-        }
-
-        targetFile.delete()
-        val temporaryFile = File(cacheDir, "CarConcept.glb.tmp")
-        val connection = URL(modelUrl).openConnection() as HttpURLConnection
-        try {
-            connection.connectTimeout = 15_000
-            connection.readTimeout = 120_000
-            connection.instanceFollowRedirects = true
-            connection.setRequestProperty("Accept", "application/octet-stream")
-            connection.setRequestProperty("User-Agent", "GroupA/1.0")
-            connection.inputStream.use { input ->
-                temporaryFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-            if (!isValidGlbFile(temporaryFile)) {
-                throw IOException("the download did not return a GLB file")
-            }
-            if (targetFile.exists() && !targetFile.delete()) {
-                throw IOException("the cached model could not be replaced")
-            }
-            if (!temporaryFile.renameTo(targetFile)) {
-                throw IOException("the downloaded model could not be saved")
-            }
-            targetFile
-        } finally {
-            connection.disconnect()
-            if (temporaryFile.exists()) {
-                temporaryFile.delete()
-            }
-        }
-    }
-
-private fun isValidGlbFile(file: File): Boolean = runCatching {
-    RandomAccessFile(file, "r").use { input ->
-        val magic = ByteArray(GlbMagic.size)
-        input.readFully(magic)
-        file.length() > 12 && magic.contentEquals(GlbMagic)
-    }
-}.getOrDefault(false)
-
-private val GlbMagic = byteArrayOf(0x47, 0x4C, 0x54, 0x46)
+private fun formatMegabytes(bytes: Long): String =
+    "%.1f MB".format(bytes / 1024f / 1024f)
 
 @Composable
 private fun DrawerGrip(
