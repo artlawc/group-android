@@ -82,6 +82,7 @@ fun ProfileScreen(
     totalSavings: Double,
     dealsSaved: Int,
     avatarUri: String,
+    version: String,
     onOpenAccountSettings: () -> Unit,
     onOpenPaymentMethods: () -> Unit,
     onOpenCoupons: () -> Unit,
@@ -279,7 +280,7 @@ fun ProfileScreen(
         }
         item {
             Text(
-                text = stringResource(R.string.profile_version),
+                text = "Version $version",
                 color = Gray400,
                 fontSize = 12.sp,
                 modifier = Modifier.fillMaxWidth(),

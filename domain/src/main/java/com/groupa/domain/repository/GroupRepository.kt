@@ -39,6 +39,7 @@ interface GroupRepository {
     fun signOut()
     fun markAllMessagesRead()
     fun markMessageRead(messageId: String)
+    fun addMessage(message: GroupMessage)
     fun deleteMessages(messageIds: Set<String>)
     fun sendChatMessage(text: String)
     fun addContact(name: String, phone: String): Contact

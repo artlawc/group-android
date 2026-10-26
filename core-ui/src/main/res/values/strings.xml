@@ -104,7 +104,6 @@
     <string name="profile_invite_friends">Invite Friends</string>
     <string name="profile_support">Support</string>
     <string name="profile_log_out">Log Out</string>
-    <string name="profile_version">Version 2.4.0 (Build 1042)</string>
 
     <string name="invite_message">Join me on GroupGO and unlock great local deals! Use my invite code TIM-2026.</string>
     <string name="invite_code_label">Your invite code</string>

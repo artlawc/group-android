@@ -73,6 +73,10 @@ class MarkMessageReadUseCase @Inject constructor(private val repository: GroupRe
     operator fun invoke(messageId: String) = repository.markMessageRead(messageId)
 }
 
+class AddMessageUseCase @Inject constructor(private val repository: GroupRepository) {
+    operator fun invoke(message: GroupMessage) = repository.addMessage(message)
+}
+
 class DeleteMessagesUseCase @Inject constructor(private val repository: GroupRepository) {
     operator fun invoke(messageIds: Set<String>) = repository.deleteMessages(messageIds)
 }

@@ -75,6 +75,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.groupa.coreui.theme.GroupBlue
 import com.groupa.coreui.theme.GroupATheme
+import com.groupa.domain.model.GroupMessage
 import com.groupa.coreui.theme.Ink
 import com.groupa.coreui.theme.White
 import com.groupa.coreui.util.AppLanguage
@@ -207,6 +208,16 @@ private fun GroupApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     var showCarModelReadyBanner by remember { mutableStateOf(false) }
+    val carModelDownloadMessage = GroupMessage(
+        id = "car-3d-model-download-ready",
+        title = "3D Model Ready",
+        preview = "The car model has finished downloading. Tap to view the 3D dashboard.",
+        time = "Now",
+        isChat = false,
+        unread = true,
+        avatarLabel = "C",
+        car3dId = "carconcept",
+    )
 
     LaunchedEffect(Unit) {
         CarModelDownloadManager.completionEvent.collect {
@@ -218,6 +229,16 @@ private fun GroupApp(
         if (showCarModelReadyBanner) {
             delay(5_000)
             showCarModelReadyBanner = false
+        }
+    }
+
+    LaunchedEffect(showCarModelReadyBanner, currentRoute) {
+        if (showCarModelReadyBanner && currentRoute == GroupRoutes.HOME) {
+            delay(5_000)
+            if (showCarModelReadyBanner) {
+                viewModel.addMessage(carModelDownloadMessage)
+                showCarModelReadyBanner = false
+            }
         }
     }
 
@@ -506,6 +527,7 @@ private fun GroupNavHost(
                 totalSavings = state.user.totalSavings,
                 dealsSaved = state.user.dealsSaved,
                 avatarUri = state.user.avatarUri,
+                version = BuildConfig.VERSION_NAME,
                 onOpenAccountSettings = { navController.navigate(GroupRoutes.ACCOUNT) },
                 onOpenPaymentMethods = { navController.navigate(GroupRoutes.PAYMENT) },
                 onOpenCoupons = { navController.navigate(GroupRoutes.COUPONS) },

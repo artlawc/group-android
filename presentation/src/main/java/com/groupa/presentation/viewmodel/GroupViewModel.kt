@@ -13,6 +13,7 @@ import com.groupa.domain.model.Order
 import com.groupa.domain.model.StockInfo
 import com.groupa.domain.model.Totals
 import com.groupa.domain.model.User
+import com.groupa.domain.usecase.AddMessageUseCase
 import com.groupa.domain.usecase.AddToCartUseCase
 import com.groupa.domain.usecase.AddContactUseCase
 import com.groupa.domain.usecase.CalculateTotalsUseCase
@@ -111,6 +112,7 @@ class GroupViewModel @Inject constructor(
     private val signOutUseCase: SignOutUseCase,
     private val markAllMessagesReadUseCase: MarkAllMessagesReadUseCase,
     private val markMessageReadUseCase: MarkMessageReadUseCase,
+    private val addMessageUseCase: AddMessageUseCase,
     private val deleteMessagesUseCase: DeleteMessagesUseCase,
     private val sendChatMessageUseCase: SendChatMessageUseCase,
     private val addContactUseCase: AddContactUseCase,
@@ -253,6 +255,10 @@ class GroupViewModel @Inject constructor(
 
     fun markMessageAsRead(messageId: String) {
         markMessageReadUseCase(messageId)
+    }
+
+    fun addMessage(message: GroupMessage) {
+        addMessageUseCase(message)
     }
 
     fun deleteMessages(messageIds: Set<String>) {

@@ -16,6 +16,7 @@ import androidx.core.app.ActivityOptionsCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.groupa.coreui.R
 import com.groupa.data.repository.MockGroupRepository
+import com.groupa.domain.usecase.AddMessageUseCase
 import com.groupa.domain.usecase.AddToCartUseCase
 import com.groupa.domain.usecase.CalculateTotalsUseCase
 import com.groupa.domain.usecase.ChangePasswordUseCase
@@ -74,6 +75,7 @@ class ProfileScreenAvatarPickerTest {
                     totalSavings = 0.0,
                     dealsSaved = 0,
                     avatarUri = "",
+                    version = "v1.1.0",
                     onOpenAccountSettings = {},
                     onOpenPaymentMethods = {},
                     onOpenCoupons = {},
@@ -128,6 +130,7 @@ class ProfileScreenAvatarPickerTest {
             signOutUseCase = SignOutUseCase(repository),
             markAllMessagesReadUseCase = MarkAllMessagesReadUseCase(repository),
             markMessageReadUseCase = MarkMessageReadUseCase(repository),
+            addMessageUseCase = AddMessageUseCase(repository),
             deleteMessagesUseCase = DeleteMessagesUseCase(repository),
             sendChatMessageUseCase = SendChatMessageUseCase(repository),
         )

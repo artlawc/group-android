@@ -1,6 +1,7 @@
 package com.groupa.presentation.viewmodel
 
 import com.groupa.data.repository.MockGroupRepository
+import com.groupa.domain.usecase.AddMessageUseCase
 import com.groupa.domain.usecase.AddContactUseCase
 import com.groupa.domain.usecase.AddToCartUseCase
 import com.groupa.domain.usecase.CalculateTotalsUseCase
@@ -63,6 +64,7 @@ class GroupViewModelSignInTest {
         signOutUseCase = SignOutUseCase(repository),
         markAllMessagesReadUseCase = MarkAllMessagesReadUseCase(repository),
         markMessageReadUseCase = MarkMessageReadUseCase(repository),
+        addMessageUseCase = AddMessageUseCase(repository),
         deleteMessagesUseCase = DeleteMessagesUseCase(repository),
         sendChatMessageUseCase = SendChatMessageUseCase(repository),
         addContactUseCase = AddContactUseCase(repository),
@@ -172,6 +174,7 @@ class GroupViewModelSignInTest {
         viewModel.markMessageAsRead("price-drop")
         viewModel.markMessageAsRead("new-deal")
         viewModel.markMessageAsRead("body-muscles-update")
+        viewModel.markMessageAsRead("car-3d-dashboard")
 
         val finalState = GroupUiState(
             messages = repository.messages.first(),
@@ -203,7 +206,7 @@ class GroupViewModelSignInTest {
 
     @Test
     fun deletingUnreadMessagesClearsBottomBarUnreadState() = runBlocking {
-        viewModel.deleteMessages(setOf("price-drop", "new-deal", "body-muscles-update", "gourmet-burger"))
+        viewModel.deleteMessages(setOf("price-drop", "new-deal", "body-muscles-update", "car-3d-dashboard", "gourmet-burger"))
 
         val state = GroupUiState(
             messages = repository.messages.first(),

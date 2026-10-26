@@ -7,6 +7,14 @@ plugins {
     alias(libs.plugins.hilt)
 }
 
+val gitTagVersion = runCatching {
+    val process = ProcessBuilder("git", "describe", "--tags", "--abbrev=0")
+        .redirectErrorStream(true)
+        .start()
+    process.inputStream.bufferedReader().readText().trim()
+        .also { process.waitFor() }
+}.getOrNull()?.takeIf { it.isNotBlank() } ?: "dev"
+
 android {
     namespace = "com.groupa"
     compileSdkVersion("android-37.0")
@@ -16,7 +24,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.0"
+        versionName = gitTagVersion
     }
 
     buildTypes {
@@ -38,6 +46,7 @@ kotlin {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
 }

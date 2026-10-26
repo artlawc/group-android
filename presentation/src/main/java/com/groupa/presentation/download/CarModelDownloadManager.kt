@@ -68,6 +68,9 @@ object CarModelDownloadManager {
         isScreenVisible = true
 
         val targetFile = File(applicationContext.cacheDir, ModelFileName)
+        if (!targetFile.isFile || !isValidGlbFile(targetFile)) {
+            mutableState.update { CarModelDownloadState() }
+        }
         if (targetFile.isFile && isValidGlbFile(targetFile)) {
             mutableState.update {
                 CarModelDownloadState(

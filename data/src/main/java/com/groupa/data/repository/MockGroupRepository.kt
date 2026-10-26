@@ -475,6 +475,16 @@ class MockGroupRepository @Inject constructor() : GroupRepository {
         }
     }
 
+    override fun addMessage(message: GroupMessage) {
+        messageFlow.update { messages ->
+            if (messages.any { it.id == message.id }) {
+                messages
+            } else {
+                listOf(message) + messages
+            }
+        }
+    }
+
     override fun deleteMessages(messageIds: Set<String>) {
         if (messageIds.isEmpty()) return
 

@@ -72,6 +72,8 @@ import com.groupa.coreui.car3d.CarFrameState
 import com.groupa.coreui.car3d.CarPaint
 import com.groupa.coreui.car3d.CarPoint
 import com.groupa.coreui.car3d.FilamentCarViewer
+import com.groupa.presentation.download.CarModelDownloadState
+import java.io.File
 
 private data class NamedCarPaint(
     val name: String,
@@ -198,7 +200,7 @@ fun Car3DScreen(
         driveLoop = driveLoop,
     )
     val downloadState = CarModelDownloadManager.state.collectAsState().value
-    val downloadedModelFile = downloadState.modelFile
+    val downloadedModelFile = resolveDownloadedModelFile(downloadState)
 
     LaunchedEffect(BuildConfig.CAR_3D_MODEL_URL) {
         CarModelDownloadManager.start(context, BuildConfig.CAR_3D_MODEL_URL)
@@ -497,6 +499,9 @@ fun Car3DScreen(
 }
 
 }
+
+internal fun resolveDownloadedModelFile(state: CarModelDownloadState): File? =
+    state.modelFile?.takeIf(File::isFile)
 
 private fun formatMegabytes(bytes: Long): String =
     "%.1f MB".format(bytes / 1024f / 1024f)

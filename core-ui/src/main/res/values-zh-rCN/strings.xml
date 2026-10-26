@@ -104,7 +104,6 @@
     <string name="profile_invite_friends">邀请</string>
     <string name="profile_support">支持</string>
     <string name="profile_log_out">退出登录</string>
-    <string name="profile_version">版本 2.4.0（Build 1042）</string>
 
     <string name="invite_message">快来加入 GroupGO，一起解锁本地好优惠！我的邀请码是 TIM-2026。</string>
     <string name="invite_code_label">你的邀请码</string>
