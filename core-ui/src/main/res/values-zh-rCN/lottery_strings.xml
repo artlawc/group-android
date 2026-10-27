@@ -1,0 +1,22 @@
+<resources>
+    <string name="action_open_lottery">幸运抽奖</string>
+    <string name="title_lottery">幸运抽奖</string>
+    <string name="lottery_status_available">你有 1 次免费抽奖机会！</string>
+    <string name="lottery_status_locked">暂无免费抽奖</string>
+    <string name="lottery_next_free_spin">下次免费抽奖</string>
+    <string name="lottery_status_available_label">状态可用</string>
+    <string name="lottery_spin_now">立即抽奖</string>
+    <string name="lottery_speed_up">加速器</string>
+    <string name="lottery_speed_up_hint">缩短 15 分钟（-50 金币）</string>
+    <string name="lottery_coins">金币</string>
+    <string name="lottery_won">赢得：%1$s</string>
+    <string name="lottery_time_boosted">时间已缩短 15 分钟！</string>
+    <string name="lottery_prize_50_off">5折</string>
+    <string name="lottery_prize_plus">DEALSPOT 会员</string>
+    <string name="lottery_prize_50_discount">立减 $50</string>
+    <string name="lottery_prize_10_off">9折</string>
+    <string name="lottery_prize_mystery_gift">神秘礼物</string>
+    <string name="lottery_prize_20_voucher">$20 代金券</string>
+    <string name="lottery_prize_free_shipping">包邮</string>
+    <string name="lottery_prize_5_coins">5 金币</string>
+</resources>

@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +49,7 @@ import com.groupa.coreui.theme.Ink
 import com.groupa.coreui.theme.White
 import com.groupa.domain.model.Deal
 import com.groupa.presentation.component.DealCard
+import com.groupa.coreui.R
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -55,6 +57,7 @@ fun HomeScreen(
     deals: List<Deal>,
     locationLabel: String,
     onDealClick: (String) -> Unit,
+    onLotteryClick: () -> Unit,
     onLocationClick: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -109,13 +112,13 @@ fun HomeScreen(
                     }
                 }
                 Surface(
-                    onClick = {},
+                    onClick = onLotteryClick,
                     shape = RoundedCornerShape(18.dp),
                     color = GroupBlue.copy(alpha = 0.08f),
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Notifications,
-                        contentDescription = "Notifications",
+                        contentDescription = stringResource(R.string.action_open_lottery),
                         tint = GroupBlue,
                         modifier = Modifier
                             .padding(12.dp)

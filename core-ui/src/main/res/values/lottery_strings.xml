@@ -1,0 +1,22 @@
+<resources>
+    <string name="action_open_lottery">Lottery</string>
+    <string name="title_lottery">Lucky Draw</string>
+    <string name="lottery_status_available">You have 1 free spin available!</string>
+    <string name="lottery_status_locked">No free spins remaining</string>
+    <string name="lottery_next_free_spin">Next Free Spin In</string>
+    <string name="lottery_status_available_label">Status Available</string>
+    <string name="lottery_spin_now">Spin Now!</string>
+    <string name="lottery_speed_up">Speed-Up Booster</string>
+    <string name="lottery_speed_up_hint">Skip 15 minutes (-50 Coins)</string>
+    <string name="lottery_coins">Coins</string>
+    <string name="lottery_won">Won: %1$s</string>
+    <string name="lottery_time_boosted">Time Boosted by 15 Mins!</string>
+    <string name="lottery_prize_50_off">50% OFF</string>
+    <string name="lottery_prize_plus">DEALSPOT PLUS</string>
+    <string name="lottery_prize_50_discount">$50 OFF</string>
+    <string name="lottery_prize_10_off">10% OFF</string>
+    <string name="lottery_prize_mystery_gift">MYSTERY GIFT</string>
+    <string name="lottery_prize_20_voucher">$20 VOUCHER</string>
+    <string name="lottery_prize_free_shipping">FREE SHIPPING</string>
+    <string name="lottery_prize_5_coins">5 COINS</string>
+</resources>

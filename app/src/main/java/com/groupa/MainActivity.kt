@@ -93,11 +93,13 @@ import com.groupa.presentation.screen.CouponDetailScreen
 import com.groupa.presentation.screen.CouponsScreen
 import com.groupa.presentation.screen.ContactsScreen
 import com.groupa.presentation.screen.CurrencySelectionScreen
+import com.groupa.presentation.screen.CyberpunkScreenEntry
 import com.groupa.presentation.screen.DealDetailScreen
 import com.groupa.presentation.screen.EditPersonalInformationScreen
 import com.groupa.presentation.screen.HomeScreen
 import com.groupa.presentation.screen.InviteFriendsScreen
 import com.groupa.presentation.screen.LanguageSelectionScreen
+import com.groupa.presentation.screen.LotteryScreen
 import com.groupa.presentation.screen.MapViewScreen
 import com.groupa.presentation.screen.MessagesScreen
 import com.groupa.presentation.screen.PaymentMethodsScreen
@@ -381,6 +383,7 @@ private fun GroupNavHost(
                 deals = state.deals,
                 locationLabel = currentLocation.label,
                 onDealClick = { dealId -> navController.navigate(GroupRoutes.dealDetail(dealId)) },
+                onLotteryClick = { navController.navigate(GroupRoutes.LOTTERY) },
                 onLocationClick = {
                     val mapTarget = if (
                         currentLocation.latitude != null &&
@@ -393,6 +396,13 @@ private fun GroupNavHost(
                     navController.navigate(GroupRoutes.map(mapTarget, currentLocation.label))
                 },
             )
+        }
+        composable(GroupRoutes.LOTTERY) {
+            CyberpunkScreenEntry {
+                LotteryScreen(
+                    onBack = { navController.popBackStack() },
+                )
+            }
         }
         composable(GroupRoutes.DEAL_DETAIL) { entry ->
             val dealId = entry.arguments?.getString("dealId").orEmpty()

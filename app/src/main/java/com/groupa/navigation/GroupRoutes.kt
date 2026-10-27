@@ -12,6 +12,7 @@ object GroupRoutes {
     const val CHECKOUT = "checkout"
     const val CONFIRMATION = "confirmation/{orderId}"
     const val MESSAGES = "messages"
+    const val LOTTERY = "lottery"
     const val CONTACTS = "contacts"
     const val PROFILE = "profile"
     const val ACCOUNT = "account"
