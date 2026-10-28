@@ -1,6 +1,8 @@
 package com.groupa.presentation.screen
 
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -33,7 +35,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
@@ -72,6 +73,10 @@ import com.groupa.coreui.car3d.CarFrameState
 import com.groupa.coreui.car3d.CarPaint
 import com.groupa.coreui.car3d.CarPoint
 import com.groupa.coreui.car3d.FilamentCarViewer
+import com.groupa.presentation.component.Cyberpunk2077Loader
+import com.groupa.presentation.component.CyberpunkLoaderAction
+import com.groupa.presentation.component.CyberpunkTearSyncTransition
+import com.groupa.presentation.component.cyberpunkEntryTransitionShouldPlay
 import com.groupa.presentation.download.CarModelDownloadState
 import java.io.File
 
@@ -201,6 +206,32 @@ fun Car3DScreen(
     )
     val downloadState = CarModelDownloadManager.state.collectAsState().value
     val downloadedModelFile = resolveDownloadedModelFile(downloadState)
+    val entryTransitionProgress = remember {
+        Animatable(if (downloadedModelFile != null) 0f else 1f)
+    }
+    var entryTransitionPlayed by remember { mutableStateOf(false) }
+
+    LaunchedEffect(downloadedModelFile) {
+        if (downloadedModelFile == null) {
+            entryTransitionPlayed = false
+            entryTransitionProgress.snapTo(targetValue = 1f)
+        } else if (
+            cyberpunkEntryTransitionShouldPlay(
+                modelReady = true,
+                hasPlayed = entryTransitionPlayed,
+            )
+        ) {
+            entryTransitionPlayed = true
+            entryTransitionProgress.snapTo(targetValue = 0f)
+            entryTransitionProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(
+                    durationMillis = 1_100,
+                    easing = LinearEasing,
+                ),
+            )
+        }
+    }
 
     LaunchedEffect(BuildConfig.CAR_3D_MODEL_URL) {
         CarModelDownloadManager.start(context, BuildConfig.CAR_3D_MODEL_URL)
@@ -226,74 +257,51 @@ fun Car3DScreen(
                 modelFile = downloadedModelFile,
                 modifier = Modifier.fillMaxSize(),
             )
+            CyberpunkTearSyncTransition(
+                progress = entryTransitionProgress.value,
+                modifier = Modifier.fillMaxSize(),
+            )
         } else {
-            Column(
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(horizontal = 32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                Text(
-                    text = if (downloadState.status == CarModelDownloadStatus.Failed) {
-                        "3D model download failed"
-                    } else {
-                        "Downloading 3D model"
-                    },
-                    color = Color(0xFFE0E0E0),
-                    style = MaterialTheme.typography.titleMedium,
-                )
-                if (downloadState.status == CarModelDownloadStatus.Failed) {
-                    Text(
-                        text = downloadState.error ?: "Please try again later.",
-                        color = Color(0xFF888888),
-                        fontSize = 13.sp,
-                    )
-                    Button(
+            val isDownloadFailed = downloadState.status == CarModelDownloadStatus.Failed
+            Cyberpunk2077Loader(
+                title = "MODEL_STREAM",
+                panelTitle = "CAR_DATASHARD_DOWNLOAD",
+                status = if (isDownloadFailed) {
+                    "DOWNLOAD_FAILED"
+                } else {
+                    "MODEL_DOWNLOADING"
+                },
+                progress = carModelDownloadProgress(downloadState),
+                detail = carModelDownloadDetail(downloadState),
+                logs = carModelDownloadDiagnosticLines(downloadState),
+                primaryAction = if (isDownloadFailed) {
+                    CyberpunkLoaderAction(
+                        label = "RETRY_DATASHARD_SYNC",
                         onClick = {
                             CarModelDownloadManager.retry(
                                 context,
                                 BuildConfig.CAR_3D_MODEL_URL,
                             )
                         },
-                    ) {
-                        Text(text = "Retry download")
-                    }
-                } else {
-                    if (downloadState.totalBytes > 0) {
-                        LinearProgressIndicator(
-                            progress = {
-                                (
-                                    downloadState.downloadedBytes.toFloat() /
-                                        downloadState.totalBytes
-                                    ).coerceIn(0f, 1f)
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    } else {
-                        LinearProgressIndicator(
-                            modifier = Modifier.fillMaxWidth(),
-                        )
-                    }
-                    Text(
-                        text = if (downloadState.totalBytes > 0) {
-                            "Downloaded ${formatMegabytes(downloadState.downloadedBytes)} of " +
-                                formatMegabytes(downloadState.totalBytes)
-                        } else {
-                            "Downloaded ${formatMegabytes(downloadState.downloadedBytes)}"
-                        },
-                        color = Color(0xFF888888),
-                        fontSize = 13.sp,
                     )
-                    Button(
+                } else {
+                    CyberpunkLoaderAction(
+                        label = "NOTIFY_WHEN_MODEL_DOWNLOADED",
                         onClick = onBack,
-                    ) {
-                        Text(text = "Notify me when model downloaded")
-                    }
-                }
-            }
+                    )
+                },
+                secondaryAction = if (isDownloadFailed) {
+                    CyberpunkLoaderAction(
+                        label = "DISCONNECT_NETLINK",
+                        onClick = onBack,
+                    )
+                } else {
+                    null
+                },
+                errorMessage = downloadState.error,
+                modifier = Modifier.fillMaxSize(),
+            )
         }
-
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -503,7 +511,38 @@ fun Car3DScreen(
 internal fun resolveDownloadedModelFile(state: CarModelDownloadState): File? =
     state.modelFile?.takeIf(File::isFile)
 
-private fun formatMegabytes(bytes: Long): String =
+internal fun carModelDownloadProgress(state: CarModelDownloadState): Float {
+    if (state.totalBytes <= 0) {
+        return if (state.status == CarModelDownloadStatus.Downloading) 0.08f else 0f
+    }
+    return (
+        state.downloadedBytes.toFloat() / state.totalBytes.toFloat()
+        ).coerceIn(0f, 1f)
+}
+
+internal fun carModelDownloadDetail(state: CarModelDownloadState): String =
+    if (state.totalBytes > 0) {
+        "STREAM ${formatMegabytes(state.downloadedBytes)} / ${formatMegabytes(state.totalBytes)}"
+    } else {
+        "STREAM ${formatMegabytes(state.downloadedBytes)} // HEADER_PENDING"
+    }
+
+internal fun carModelDownloadDiagnosticLines(state: CarModelDownloadState): List<String> {
+    val progress = carModelDownloadProgress(state)
+    return buildList {
+        add("BUFFER_TRACE: Receiving chassis geometry packets")
+        add("SHADER_CACHE: Warming filament pipeline")
+        add(carModelDownloadDetail(state))
+        if (progress >= 0.5f) {
+            add("INTEGRITY: Verifying GLB signature")
+        }
+        if (state.status == CarModelDownloadStatus.Failed) {
+            add("ALERT: Netlink interrupted - retry required")
+        }
+    }
+}
+
+internal fun formatMegabytes(bytes: Long): String =
     "%.1f MB".format(bytes / 1024f / 1024f)
 
 @Composable
