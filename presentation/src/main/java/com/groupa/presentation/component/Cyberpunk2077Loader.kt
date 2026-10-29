@@ -113,6 +113,7 @@ internal fun Cyberpunk2077Loader(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .padding(16.dp),
         ) {
@@ -124,7 +125,7 @@ internal fun Cyberpunk2077Loader(
             CyberpunkWorkspace(
                 title = title,
                 logs = logs,
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.height(200.dp).padding(top = 3.dp),
             )
             Spacer(modifier = Modifier.height(16.dp))
             CyberpunkDataShard(
@@ -206,7 +207,7 @@ private fun CyberpunkWorkspace(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = 180.dp)
+            .height(200.dp)
             .background(Color(0x66030305))
             .border(width = 1.dp, color = CyberpunkCyan.copy(alpha = 0.32f)),
     ) {
@@ -444,10 +445,12 @@ private fun CyberpunkActionButton(
     val shape = CyberpunkButtonShape(chamfer = 10.dp)
     Box(
         modifier = modifier
+            .height(28.dp)
             .clip(shape)
             .background(Color.Transparent)
             .border(width = 1.dp, color = color, shape = shape)
             .clickable(onClick = action.onClick),
+        contentAlignment = Alignment.CenterStart,
     ) {
         Box(
             modifier = Modifier
@@ -468,7 +471,7 @@ private fun CyberpunkActionButton(
             maxLines = 1,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 15.dp, end = 15.dp, top = 6.dp, bottom = 6.dp),
+                .padding(horizontal = 12.dp),
         )
     }
 }

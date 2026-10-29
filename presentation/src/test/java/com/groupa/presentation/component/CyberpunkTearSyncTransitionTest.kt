@@ -39,8 +39,17 @@ class CyberpunkTearSyncTransitionTest {
     @Test
     fun glitchIntensityIsViolentAtStartAndFadesOut() {
         assertEquals(0.85f, cyberpunkTearSyncGlitchIntensity(0f), 0.001f)
-        assertEquals(0.425f, cyberpunkTearSyncGlitchIntensity(0.5f), 0.001f)
+        assertEquals(0.85f, cyberpunkTearSyncGlitchIntensity(0.5f), 0.001f)
+        assertEquals(0.85f, cyberpunkTearSyncGlitchIntensity(0.78f), 0.001f)
         assertEquals(0f, cyberpunkTearSyncGlitchIntensity(1f), 0.001f)
+    }
+
+    @Test
+    fun overlayFadesOnlyNearTheEnd() {
+        assertEquals(1f, cyberpunkTearSyncOverlayFade(0.5f), 0.001f)
+        assertEquals(1f, cyberpunkTearSyncOverlayFade(0.82f), 0.001f)
+        assertEquals(0.5f, cyberpunkTearSyncOverlayFade(0.91f), 0.001f)
+        assertEquals(0f, cyberpunkTearSyncOverlayFade(1f), 0.001f)
     }
 
     @Test

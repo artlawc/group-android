@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.unit.dp
 import kotlin.math.floor
 import kotlin.math.sin
@@ -38,7 +39,20 @@ internal fun cyberpunkTearSyncThreshold(progress: Float): Float {
 
 internal fun cyberpunkTearSyncGlitchIntensity(progress: Float): Float {
     require(progress in 0f..1f) { "progress must be between 0 and 1" }
-    return 0.85f * (1f - progress)
+    return if (progress <= 0.78f) {
+        0.85f
+    } else {
+        0.85f * (1f - (progress - 0.78f) / 0.22f)
+    }
+}
+
+internal fun cyberpunkTearSyncOverlayFade(progress: Float): Float {
+    require(progress in 0f..1f) { "progress must be between 0 and 1" }
+    return if (progress <= 0.82f) {
+        1f
+    } else {
+        1f - (progress - 0.82f) / 0.18f
+    }
 }
 
 internal fun cyberpunkHash(
@@ -97,53 +111,86 @@ internal fun CyberpunkTearSyncTransition(
         val safeProgress = progress.coerceIn(0f, 1f)
         val intensity = cyberpunkTearSyncGlitchIntensity(safeProgress)
         val threshold = cyberpunkTearSyncThreshold(safeProgress)
+        val fade = cyberpunkTearSyncOverlayFade(safeProgress)
+        val revealPath = cyberpunkTearSyncRevealPath(
+            width = size.width,
+            height = size.height,
+            progress = safeProgress,
+        )
 
-        drawRect(color = TearSyncBackground)
+        drawRgbTearing(time = time, intensity = intensity, fade = fade)
         drawPath(
-            path = cyberpunkTearSyncRevealPath(
-                width = size.width,
-                height = size.height,
-                progress = safeProgress,
-            ),
+            path = revealPath,
             color = Color.Transparent,
             blendMode = BlendMode.Clear,
         )
-
-        drawRgbTearing(time = time, intensity = intensity)
+        drawDissolveField(
+            path = revealPath,
+            threshold = threshold,
+            intensity = intensity,
+            time = time,
+            fade = fade,
+        )
         drawDissolveBoundary(
             threshold = threshold,
             intensity = intensity,
             time = time,
+            fade = fade,
         )
-        drawScanlines(alpha = 0.2f * (1f - safeProgress))
+        drawScanlines(alpha = 0.22f * fade)
     }
 }
 
 private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRgbTearing(
     time: Float,
     intensity: Float,
+    fade: Float,
 ) {
     val redOffset = 0.015f * intensity
     val blueOffset = -0.010f * intensity
+    val baseAlpha = (0.15f + 0.40f * intensity) * fade
+    val ribbonAlpha = (0.18f + 0.22f * intensity) * fade
 
-    repeat(3) { stripeIndex ->
-        val x = (
-            (time * 0.8f + stripeIndex * 0.33f) % 1f
-            ) * size.width
+    drawRect(color = Color(0x80303038).copy(alpha = baseAlpha))
+
+    repeat(6) { row ->
+        val y = size.height * (row / 6f)
         drawRect(
-            color = Color(0xFFFF0040).copy(alpha = 0.10f * intensity),
+            color = Color(0x60FF00B8).copy(alpha = ribbonAlpha * 0.55f),
+            topLeft = Offset(x = redOffset * size.width, y = y),
+            size = Size(
+                width = size.width * 0.02f,
+                height = size.height / 8f,
+            ),
+        )
+        drawRect(
+            color = Color(0x5000F0FF).copy(alpha = ribbonAlpha * 0.55f),
+            topLeft = Offset(x = blueOffset * size.width, y = y),
+            size = Size(
+                width = size.width * 0.025f,
+                height = size.height / 11f,
+            ),
+        )
+        drawLine(
+            color = Color(0x90FFFFFF).copy(alpha = ribbonAlpha),
+            start = Offset(x = 0f, y = y),
+            end = Offset(x = size.width, y = y),
+            strokeWidth = 1f,
+        )
+    }
+
+    repeat(12) { column ->
+        val x = size.width * (column / 12f)
+        drawRect(
+            color = Color(0x70FF003C).copy(alpha = ribbonAlpha * 0.35f),
             topLeft = Offset(x = x + redOffset * size.width, y = 0f),
-            size = Size(width = size.width * 0.04f, height = size.height),
+            size = Size(width = size.width * 0.035f, height = size.height),
         )
-        drawRect(
-            color = Color(0xFF00F0FF).copy(alpha = 0.08f * intensity),
-            topLeft = Offset(x = x, y = 0f),
-            size = Size(width = size.width * 0.04f, height = size.height),
-        )
-        drawRect(
-            color = Color(0xFF4060FF).copy(alpha = 0.10f * intensity),
-            topLeft = Offset(x = x + blueOffset * size.width, y = 0f),
-            size = Size(width = size.width * 0.04f, height = size.height),
+        drawLine(
+            color = Color(0xB0FFFFFF).copy(alpha = ribbonAlpha * 0.7f),
+            start = Offset(x = x, y = 0f),
+            end = Offset(x = x, y = size.height),
+            strokeWidth = 1f,
         )
     }
 
@@ -156,17 +203,90 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawRgbTearing(
             y = timeSlot,
         )
         if (sliceHash < intensity * 0.7f) {
-            val offset = (
+            val sliceOffset = (
                 cyberpunkHash(sliceIndex.toFloat(), time) - 0.5f
                 ) * 0.12f * size.width * intensity
             drawRect(
-                color = if (sliceIndex % 2 == 0) {
-                    TearSyncCyan.copy(alpha = 0.14f * intensity)
-                } else {
-                    TearSyncCrimson.copy(alpha = 0.12f * intensity)
-                },
-                topLeft = Offset(x = offset, y = sliceIndex * sliceHeight),
+                color = Color(0x32000000).copy(alpha = fade),
+                topLeft = Offset(x = sliceOffset, y = sliceIndex * sliceHeight),
                 size = Size(width = size.width, height = sliceHeight),
+            )
+            drawRect(
+                color = if (sliceIndex % 2 == 0) {
+                    TearSyncCyan.copy(alpha = 0.28f * intensity * fade)
+                } else {
+                    TearSyncCrimson.copy(alpha = 0.24f * intensity * fade)
+                },
+                topLeft = Offset(
+                    x = sliceOffset + redOffset * size.width,
+                    y = sliceIndex * sliceHeight,
+                ),
+                size = Size(
+                    width = size.width * 0.35f,
+                    height = sliceHeight,
+                ),
+            )
+            drawRect(
+                color = if (sliceIndex % 3 == 0) {
+                    TearSyncCyan.copy(alpha = 0.24f * intensity * fade)
+                } else {
+                    Color(0xFF4060FF).copy(alpha = 0.24f * intensity * fade)
+                },
+                topLeft = Offset(
+                    x = sliceOffset + blueOffset * size.width,
+                    y = sliceIndex * sliceHeight,
+                ),
+                size = Size(
+                    width = size.width * 0.28f,
+                    height = sliceHeight,
+                ),
+            )
+        }
+    }
+}
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawDissolveField(
+    path: Path,
+    threshold: Float,
+    intensity: Float,
+    time: Float,
+    fade: Float,
+) {
+    if (fade <= 0.01f) return
+
+    clipPath(path) {
+        drawRect(color = Color(0x72030507).copy(alpha = fade))
+        repeat(90) { index ->
+            val x = cyberpunkHash(time, index.toFloat()) * size.width
+            val y = cyberpunkHash(index.toFloat(), threshold) * size.height
+            val color = when {
+                index % 5 == 0 -> TearSyncCyan
+                index % 3 == 0 -> TearSyncCrimson
+                index % 4 == 0 -> TearSyncYellow
+                else -> Color(0xFFD3F7FF)
+            }
+            val packetSize = (1f + cyberpunkHash(threshold, time) * 6f).dp.toPx()
+            drawRect(
+                color = color.copy(
+                    alpha = (0.30f + 0.35f * intensity) * fade,
+                ),
+                topLeft = Offset(x = x, y = y),
+                size = Size(width = packetSize, height = packetSize),
+            )
+        }
+        repeat(36) { index ->
+            val x = cyberpunkHash(threshold, index.toFloat()) * size.width
+            val y = size.height * 2f * (
+                threshold - x / size.width
+                ) + cyberpunkHash(time, threshold) * size.height * 0.08f
+            if (y !in 0f..size.height) return@repeat
+            val packetSize = (2f + cyberpunkHash(index.toFloat(), time) * 5f).dp.toPx()
+            drawRect(
+                color = Color(0xFFD9EAF2).copy(
+                    alpha = (0.18f + 0.20f * intensity) * fade,
+                ),
+                topLeft = Offset(x = x, y = y),
+                size = Size(width = packetSize, height = packetSize),
             )
         }
     }
@@ -176,8 +296,9 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawDissolveBoundar
     threshold: Float,
     intensity: Float,
     time: Float,
+    fade: Float,
 ) {
-    if (intensity <= 0.01f) return
+    if (intensity <= 0.01f || fade <= 0.01f) return
 
     val boundaryPath = Path()
     var started = false
@@ -218,7 +339,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawDissolveBoundar
         }
         val sizePx = (2f + cyberpunkHash(index.toFloat(), threshold) * 5f).dp.toPx()
         drawRect(
-            color = color.copy(alpha = 0.75f * intensity),
+            color = color.copy(alpha = 0.75f * intensity * fade),
             topLeft = Offset(x = x, y = y),
             size = Size(width = sizePx, height = sizePx),
         )
