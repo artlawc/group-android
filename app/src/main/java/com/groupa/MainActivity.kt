@@ -83,6 +83,7 @@ import com.groupa.coreui.R as CoreUiR
 import com.groupa.navigation.GroupRoutes
 import com.groupa.presentation.download.CarModelDownloadManager
 import com.groupa.presentation.screen.AccountSettingsScreen
+import com.groupa.presentation.screen.AirportScreen
 import com.groupa.presentation.screen.BodyMuscleScreen
 import com.groupa.presentation.screen.Car3DScreen
 import com.groupa.presentation.screen.CheckoutScreen
@@ -96,11 +97,13 @@ import com.groupa.presentation.screen.CurrencySelectionScreen
 import com.groupa.presentation.screen.CyberpunkScreenEntry
 import com.groupa.presentation.screen.DealDetailScreen
 import com.groupa.presentation.screen.EditPersonalInformationScreen
+import com.groupa.presentation.screen.FlightScreen
 import com.groupa.presentation.screen.HomeScreen
 import com.groupa.presentation.screen.InviteFriendsScreen
 import com.groupa.presentation.screen.LanguageSelectionScreen
 import com.groupa.presentation.screen.LotteryScreen
 import com.groupa.presentation.screen.MapViewScreen
+import com.groupa.presentation.screen.NavIndoorScreen
 import com.groupa.presentation.screen.MessagesScreen
 import com.groupa.presentation.screen.PaymentMethodsScreen
 import com.groupa.presentation.screen.ProfileScreen
@@ -510,6 +513,9 @@ private fun GroupNavHost(
                 onOpenStock = { stockId -> navController.navigate(GroupRoutes.stockInfo(stockId)) },
                 onOpenBodyMuscle = { muscleId -> navController.navigate(GroupRoutes.bodyMuscles(muscleId)) },
                 onOpenCar3D = { carId -> navController.navigate(GroupRoutes.car3d(carId)) },
+                onOpenAirport = { airportId -> navController.navigate(GroupRoutes.airport(airportId)) },
+                onOpenNavIndoor = { navIndoorId -> navController.navigate(GroupRoutes.navIndoor(navIndoorId)) },
+                onOpenFlight = { flightId -> navController.navigate(GroupRoutes.flight(flightId)) },
                 onMarkAllRead = viewModel::markAllMessagesAsRead,
                 onOpenContacts = { navController.navigate(GroupRoutes.CONTACTS) },
                 onMessageRead = viewModel::markMessageAsRead,
@@ -559,6 +565,24 @@ private fun GroupNavHost(
         composable(GroupRoutes.CAR_3D) { entry ->
             Car3DScreen(
                 carId = entry.arguments?.getString("carId").orEmpty(),
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(GroupRoutes.AIRPORT) { entry ->
+            AirportScreen(
+                airportId = entry.arguments?.getString("airportId").orEmpty(),
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(GroupRoutes.NAV_INDOOR) { entry ->
+            NavIndoorScreen(
+                navIndoorId = entry.arguments?.getString("navIndoorId").orEmpty(),
+                onBack = { navController.popBackStack() },
+            )
+        }
+        composable(GroupRoutes.FLIGHT) { entry ->
+            FlightScreen(
+                flightId = entry.arguments?.getString("flightId").orEmpty(),
                 onBack = { navController.popBackStack() },
             )
         }

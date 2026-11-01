@@ -81,5 +81,6 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
     implementation(libs.osmdroid.android)
+    implementation("com.caverock:androidsvg:1.4")
     testImplementation(libs.junit)
 }

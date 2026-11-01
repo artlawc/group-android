@@ -12,4 +12,7 @@ data class GroupMessage(
     val stockId: String? = null,
     val bodyMuscleId: String? = null,
     val car3dId: String? = null,
+    val airportId: String? = null,
+    val navIndoorId: String? = null,
+    val flightId: String? = null,
 )

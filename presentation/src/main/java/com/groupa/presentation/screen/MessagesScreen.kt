@@ -79,6 +79,9 @@ fun MessagesScreen(
     onOpenStock: (String) -> Unit,
     onOpenBodyMuscle: (String) -> Unit,
     onOpenCar3D: (String) -> Unit,
+    onOpenAirport: (String) -> Unit,
+    onOpenNavIndoor: (String) -> Unit,
+    onOpenFlight: (String) -> Unit,
     onMarkAllRead: () -> Unit,
     onOpenContacts: () -> Unit,
     onMessageRead: (String) -> Unit,
@@ -265,7 +268,13 @@ fun MessagesScreen(
                             val stockId = message.stockId
                             val orderId = message.orderId
                             val car3dId = message.car3dId
+                            val airportId = message.airportId
+                            val navIndoorId = message.navIndoorId
+                            val flightId = message.flightId
                             when {
+                                flightId != null -> onOpenFlight(flightId)
+                                navIndoorId != null -> onOpenNavIndoor(navIndoorId)
+                                airportId != null -> onOpenAirport(airportId)
                                 car3dId != null -> onOpenCar3D(car3dId)
                                 bodyMuscleId != null -> onOpenBodyMuscle(bodyMuscleId)
                                 stockId != null -> onOpenStock(stockId)

@@ -30,6 +30,9 @@ object GroupRoutes {
     const val BODY_MUSCLES = "bodyMuscles/{muscleId}"
     const val CAR_3D = "car3d/{carId}"
     const val MAP = "map?target={target}&label={label}"
+    const val AIRPORT = "airport/{airportId}"
+    const val NAV_INDOOR = "navIndoor/{navIndoorId}"
+    const val FLIGHT = "flight/{flightId}"
 
     val bottomRoutes = setOf(HOME, MESSAGES, PURCHASES, ORDERS, PROFILE, CONFIRMATION)
 
@@ -39,6 +42,9 @@ object GroupRoutes {
     fun stockInfo(stockId: String) = "stockInfo/$stockId"
     fun bodyMuscles(muscleId: String) = "bodyMuscles/$muscleId"
     fun car3d(carId: String) = "car3d/$carId"
+    fun airport(airportId: String) = "airport/$airportId"
+    fun navIndoor(navIndoorId: String) = "navIndoor/$navIndoorId"
+    fun flight(flightId: String) = "flight/$flightId"
     fun couponDetail(couponId: String) = "couponDetail/$couponId"
     fun map(target: String, label: String) =
         "map?target=${Uri.encode(target)}&label=${Uri.encode(label)}"
