@@ -15,4 +15,5 @@ data class GroupMessage(
     val airportId: String? = null,
     val navIndoorId: String? = null,
     val flightId: String? = null,
+    val carMapId: String? = null,
 )

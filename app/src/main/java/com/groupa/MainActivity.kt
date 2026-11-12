@@ -86,6 +86,7 @@ import com.groupa.presentation.screen.AccountSettingsScreen
 import com.groupa.presentation.screen.AirportScreen
 import com.groupa.presentation.screen.BodyMuscleScreen
 import com.groupa.presentation.screen.Car3DScreen
+import com.groupa.presentation.screen.CarMapScreen
 import com.groupa.presentation.screen.CheckoutScreen
 import com.groupa.presentation.screen.ChatScreen
 import com.groupa.presentation.screen.ChangePasswordScreen
@@ -516,6 +517,7 @@ private fun GroupNavHost(
                 onOpenAirport = { airportId -> navController.navigate(GroupRoutes.airport(airportId)) },
                 onOpenNavIndoor = { navIndoorId -> navController.navigate(GroupRoutes.navIndoor(navIndoorId)) },
                 onOpenFlight = { flightId -> navController.navigate(GroupRoutes.flight(flightId)) },
+                onOpenCarMap = { carMapId -> navController.navigate(GroupRoutes.carMap(carMapId)) },
                 onMarkAllRead = viewModel::markAllMessagesAsRead,
                 onOpenContacts = { navController.navigate(GroupRoutes.CONTACTS) },
                 onMessageRead = viewModel::markMessageAsRead,
@@ -574,18 +576,24 @@ private fun GroupNavHost(
                 onBack = { navController.popBackStack() },
             )
         }
-        composable(GroupRoutes.NAV_INDOOR) { entry ->
-            NavIndoorScreen(
-                navIndoorId = entry.arguments?.getString("navIndoorId").orEmpty(),
+       composable(GroupRoutes.NAV_INDOOR) { entry ->
+           NavIndoorScreen(
+               navIndoorId = entry.arguments?.getString("navIndoorId").orEmpty(),
+               onBack = { navController.popBackStack() },
+           )
+       }
+        composable(GroupRoutes.CAR_MAP) { entry ->
+            CarMapScreen(
+                carMapId = entry.arguments?.getString("carMapId").orEmpty(),
                 onBack = { navController.popBackStack() },
             )
         }
-        composable(GroupRoutes.FLIGHT) { entry ->
-            FlightScreen(
-                flightId = entry.arguments?.getString("flightId").orEmpty(),
-                onBack = { navController.popBackStack() },
-            )
-        }
+       composable(GroupRoutes.FLIGHT) { entry ->
+           FlightScreen(
+               flightId = entry.arguments?.getString("flightId").orEmpty(),
+               onBack = { navController.popBackStack() },
+           )
+       }
         composable(GroupRoutes.STOCK_INFO) { entry ->
             val stockId = entry.arguments?.getString("stockId").orEmpty()
             val stock = state.stocks.firstOrNull { it.id == stockId }

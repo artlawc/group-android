@@ -33,6 +33,7 @@ object GroupRoutes {
     const val AIRPORT = "airport/{airportId}"
     const val NAV_INDOOR = "navIndoor/{navIndoorId}"
     const val FLIGHT = "flight/{flightId}"
+    const val CAR_MAP = "carMap/{carMapId}"
 
     val bottomRoutes = setOf(HOME, MESSAGES, PURCHASES, ORDERS, PROFILE, CONFIRMATION)
 
@@ -45,6 +46,7 @@ object GroupRoutes {
     fun airport(airportId: String) = "airport/$airportId"
     fun navIndoor(navIndoorId: String) = "navIndoor/$navIndoorId"
     fun flight(flightId: String) = "flight/$flightId"
+    fun carMap(carMapId: String) = "carMap/$carMapId"
     fun couponDetail(couponId: String) = "couponDetail/$couponId"
     fun map(target: String, label: String) =
         "map?target=${Uri.encode(target)}&label=${Uri.encode(label)}"

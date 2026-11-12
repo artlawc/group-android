@@ -82,6 +82,7 @@ fun MessagesScreen(
     onOpenAirport: (String) -> Unit,
     onOpenNavIndoor: (String) -> Unit,
     onOpenFlight: (String) -> Unit,
+    onOpenCarMap: (String) -> Unit,
     onMarkAllRead: () -> Unit,
     onOpenContacts: () -> Unit,
     onMessageRead: (String) -> Unit,
@@ -268,15 +269,17 @@ fun MessagesScreen(
                             val stockId = message.stockId
                             val orderId = message.orderId
                             val car3dId = message.car3dId
-                            val airportId = message.airportId
-                            val navIndoorId = message.navIndoorId
-                            val flightId = message.flightId
-                            when {
-                                flightId != null -> onOpenFlight(flightId)
-                                navIndoorId != null -> onOpenNavIndoor(navIndoorId)
-                                airportId != null -> onOpenAirport(airportId)
-                                car3dId != null -> onOpenCar3D(car3dId)
-                                bodyMuscleId != null -> onOpenBodyMuscle(bodyMuscleId)
+                           val airportId = message.airportId
+                           val navIndoorId = message.navIndoorId
+                           val flightId = message.flightId
+                            val carMapId = message.carMapId
+                           when {
+                               flightId != null -> onOpenFlight(flightId)
+                               navIndoorId != null -> onOpenNavIndoor(navIndoorId)
+                                carMapId != null -> onOpenCarMap(carMapId)
+                               airportId != null -> onOpenAirport(airportId)
+                               car3dId != null -> onOpenCar3D(car3dId)
+                               bodyMuscleId != null -> onOpenBodyMuscle(bodyMuscleId)
                                 stockId != null -> onOpenStock(stockId)
                                 orderId != null -> onOpenOrder(orderId)
                             }
